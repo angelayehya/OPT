@@ -285,7 +285,7 @@ Keep the tone professional yet approachable. Make it specific to their situation
         
         st.divider()
         st.caption(f"Assessment completed on {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-        st.caption("⚠️ **Disclaimer**: This tool is for informational purposes only and not a substitute for professional medical advice. Always consult with a qualified eye care professional.")
+        st.caption("⚠️ **Disclaimer**: This tool is for informational purposes only and not a substitute for professional medical advice. Always consult with a qualified eye care professional for medical diagnosis and treatment recommendations.")
 
 with tab4:
     st.header("💬 Vision Health AI Assistant")
@@ -313,7 +313,7 @@ with tab4:
                     
                     # Context from assessment if available
                     context = ""
-                    if hasattr(st.session_state, 'last_assessment'):
+                    if 'last_assessment' in st.session_state:
                         context = f"\nUser's Recent Assessment: Risk Level: {st.session_state.last_assessment['priority']}, Risk Factors: {', '.join(st.session_state.last_assessment['factors'])}"
                     
                     system_prompt = """You are a knowledgeable vision health assistant with expertise in optometry and eye care. 
