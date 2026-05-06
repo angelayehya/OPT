@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import pandas as pd
 from datetime import datetime
 from openai import OpenAI
 
@@ -14,6 +15,52 @@ def get_openai_client():
         st.error("⚠️ OpenAI API key not found. Please add it to your secrets.")
         st.stop()
     return OpenAI(api_key=api_key)
+
+# Eye Care Providers Database
+EYE_CARE_PROVIDERS = {
+    "Beirut": [
+        {"Name": "Beirut Eye & ENT Specialist Hospital", "Type": "Eye Hospital", "Specialty": "Surgical / General Ophthalmology"},
+        {"Name": "Dr Rabih Saneh Eye Clinic", "Type": "Ophthalmology Clinic", "Specialty": "LASIK / Retina"},
+        {"Name": "Eye Care Center Beirut", "Type": "Ophthalmology Clinic", "Specialty": "General Eye Care"},
+        {"Name": "Dr Ama Sadaka Clinic", "Type": "Ophthalmology Clinic", "Specialty": "General Ophthalmology"},
+        {"Name": "Visique Optometrists", "Type": "Optometry Center", "Specialty": "Vision Testing / Glasses"},
+        {"Name": "XENA OPTIC", "Type": "Optometry Center", "Specialty": "Optical / Vision Care"},
+        {"Name": "Coté Vue Beirut", "Type": "Optical Center", "Specialty": "Eyewear / Optometry"},
+    ],
+    "Aley": [
+        {"Name": "Aley Eye Center", "Type": "Eye Care Center", "Specialty": "General Ophthalmology"},
+        {"Name": "Optique et Vision Aley", "Type": "Optometry Center", "Specialty": "Vision Testing"},
+        {"Name": "Eye Wise Optical", "Type": "Optical Center", "Specialty": "Optical / Vision Care"},
+        {"Name": "Sharafedin Optic", "Type": "Optical Center", "Specialty": "Glasses / Vision Care"},
+    ],
+    "Tripoli": [
+        {"Name": "Dr Samir G. Farah Clinic", "Type": "Ophthalmology Clinic", "Specialty": "LASIK / Refractive Surgery"},
+        {"Name": "Dr Mohamad Nadim Safi Clinic", "Type": "Ophthalmology Clinic", "Specialty": "General Ophthalmology"},
+        {"Name": "Nawfal Clinics Tripoli", "Type": "Medical Clinic", "Specialty": "Eye Care / General Medicine"},
+    ],
+    "Jounieh": [
+        {"Name": "Dr Khalil Khalil Eye Clinic", "Type": "Ophthalmology Clinic", "Specialty": "General Ophthalmology"},
+        {"Name": "Eye & Ear Hospital International", "Type": "Specialized Hospital", "Specialty": "Eye Surgery / ENT"},
+        {"Name": "Nawfal Clinics Jounieh", "Type": "Medical Clinic", "Specialty": "Eye Care / General Medicine"},
+    ],
+    "Zahle": [
+        {"Name": "Clinique Ophtaderm", "Type": "Ophthalmology Clinic", "Specialty": "Ophthalmology / Retina"},
+    ],
+    "Jbeil": [
+        {"Name": "Eye & Ear Hospital International", "Type": "Specialized Hospital", "Specialty": "Eye Surgery / ENT"},
+        {"Name": "Dr Khalil Khalil Eye Clinic", "Type": "Ophthalmology Clinic", "Specialty": "General Ophthalmology"},
+    ],
+    "Nabatieh": [
+        {"Name": "Nabatieh Eye Care Center", "Type": "Eye Care Center", "Specialty": "General Eye Care"},
+        {"Name": "Al Basar Optical Center", "Type": "Optical Center", "Specialty": "Vision Care"},
+        {"Name": "Nabatieh Specialty Clinic", "Type": "Ophthalmology Clinic", "Specialty": "General Ophthalmology"},
+    ],
+    "Baalbek": [
+        {"Name": "Baalbek Eye Clinic", "Type": "Ophthalmology Clinic", "Specialty": "General Eye Care"},
+        {"Name": "Bekaa Vision Center", "Type": "Optical Center", "Specialty": "Vision Testing"},
+        {"Name": "Dar Al Amal Eye Unit", "Type": "Hospital Department", "Specialty": "Ophthalmology"},
+    ],
+}
 
 # Constants
 HIGH_PRIORITY_THRESHOLD = 12
@@ -37,9 +84,11 @@ if 'responses' not in st.session_state:
     st.session_state.responses = {}
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
+if 'selected_location' not in st.session_state:
+    st.session_state.selected_location = None
 
 # Create tabs
-tab1, tab2, tab3, tab4 = st.tabs(["Vision Symptoms", "Eye Health", "Results", "AI Assistant"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Vision Symptoms", "Eye Health", "Results", "AI Assistant", "Find Providers"])
 
 with tab1:
     st.header("Vision Symptoms Assessment")
@@ -136,6 +185,13 @@ with tab2:
         st.session_state.contact_wearer = st.checkbox(
             "Are you a contact lens wearer?",
             key="contact_wearer"
+        )
+        
+        # Location selection
+        st.session_state.selected_location = st.selectbox(
+            "Select your location (to find nearby providers):",
+            options=["Select a location"] + list(EYE_CARE_PROVIDERS.keys()),
+            key="location_select"
         )
 
 with tab3:
@@ -285,7 +341,7 @@ Keep the tone professional yet approachable. Make it specific to their situation
         
         st.divider()
         st.caption(f"Assessment completed on {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-        st.caption("⚠️ **Disclaimer**: This tool is for informational purposes only and not a substitute for professional medical advice. Always consult with a qualified eye care professional for medical diagnosis and treatment recommendations.")
+        st.caption("⚠️ **Disclaimer**: This tool is for informational purposes only and not a substitute for professional medical advice. Always consult with a qualified eye care professional.")
 
 with tab4:
     st.header("💬 Vision Health AI Assistant")
@@ -337,3 +393,92 @@ with tab4:
                     
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
+
+with tab5:
+    st.header("🏥 Find Eye Care Providers Near You")
+    st.write("Based on your assessment and selected location, find recommended eye care providers in Lebanon.")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.subheader("📍 Select Location")
+        location = st.selectbox(
+            "Choose your area:",
+            options=list(EYE_CARE_PROVIDERS.keys()),
+            key="provider_location_select"
+        )
+    
+    with col2:
+        if 'last_assessment' in st.session_state:
+            st.subheader("📊 Your Assessment")
+            st.metric("Risk Level", st.session_state.last_assessment['priority'].upper())
+        else:
+            st.info("💡 Complete the assessment first to get personalized recommendations")
+    
+    st.divider()
+    
+    if location and location != "Select a location":
+        st.subheader(f"👁️ Eye Care Providers in {location}")
+        
+        providers = EYE_CARE_PROVIDERS[location]
+        
+        if 'last_assessment' in st.session_state:
+            priority = st.session_state.last_assessment['priority']
+            
+            # Filter providers based on priority level
+            if priority == "high":
+                st.warning("🔴 **HIGH PRIORITY** - We recommend hospitals or specialized ophthalmology clinics for urgent care")
+                filtered_providers = [p for p in providers if p["Type"] in ["Eye Hospital", "Specialized Hospital", "Ophthalmology Clinic"]]
+            elif priority == "moderate":
+                st.info("🟡 **MODERATE PRIORITY** - Both ophthalmology clinics and optometry centers are suitable")
+                filtered_providers = providers
+            else:
+                st.success("🟢 **LOW PRIORITY** - Optometry centers and optical shops are sufficient for routine checks")
+                filtered_providers = providers
+        else:
+            filtered_providers = providers
+        
+        # Display providers in cards
+        for idx, provider in enumerate(filtered_providers, 1):
+            with st.container():
+                col1, col2, col3 = st.columns([2, 1, 1])
+                
+                with col1:
+                    st.write(f"**{idx}. {provider['Name']}**")
+                    st.caption(f"📋 Type: {provider['Type']}")
+                    st.caption(f"🎯 Specialty: {provider['Specialty']}")
+                
+                with col2:
+                    if provider["Type"] in ["Eye Hospital", "Specialized Hospital"]:
+                        st.success("🏥 Hospital")
+                    elif provider["Type"] == "Ophthalmology Clinic":
+                        st.info("🔬 Clinic")
+                    else:
+                        st.write("🔍 Center")
+                
+                with col3:
+                    st.write("")
+                
+                st.divider()
+        
+        if not filtered_providers:
+            st.warning("No providers match your priority level in this location.")
+            st.info("Showing all available providers:")
+            for idx, provider in enumerate(providers, 1):
+                st.write(f"**{idx}. {provider['Name']}** - {provider['Specialty']}")
+        
+        # Summary stats
+        st.subheader(f"📊 Provider Statistics for {location}")
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            hospitals = len([p for p in providers if p["Type"] in ["Eye Hospital", "Specialized Hospital"]])
+            st.metric("Hospitals", hospitals)
+        
+        with col2:
+            clinics = len([p for p in providers if "Clinic" in p["Type"]])
+            st.metric("Clinics", clinics)
+        
+        with col3:
+            centers = len([p for p in providers if "Center" in p["Type"] or "Optical" in p["Type"]])
+            st.metric("Optometry/Optical", centers)
