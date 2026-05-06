@@ -87,6 +87,50 @@ if 'chat_history' not in st.session_state:
 if 'selected_location' not in st.session_state:
     st.session_state.selected_location = None
 
+# Location Selection at the top (outside tabs)
+st.subheader("📍 Select Your Location in Lebanon")
+st.write("Choose your location to get insights about the nearest eye care clinics:")
+
+col1, col2 = st.columns([2, 2])
+
+with col1:
+    st.session_state.selected_location = st.selectbox(
+        "Select your location:",
+        options=["Select a location"] + list(EYE_CARE_PROVIDERS.keys()),
+        key="location_select_main"
+    )
+
+# Show nearby clinics based on location selection
+if st.session_state.selected_location and st.session_state.selected_location != "Select a location":
+    with col2:
+        providers = EYE_CARE_PROVIDERS[st.session_state.selected_location]
+        st.metric(f"Available Clinics in {st.session_state.selected_location}", len(providers))
+    
+    st.divider()
+    
+    st.subheader(f"🏥 Nearby Clinics in {st.session_state.selected_location}")
+    
+    # Display quick preview of providers
+    for idx, provider in enumerate(providers, 1):
+        with st.container():
+            col1, col2 = st.columns([3, 1])
+            
+            with col1:
+                st.write(f"**{idx}. {provider['Name']}**")
+                st.caption(f"📋 Type: {provider['Type']} | 🎯 Specialty: {provider['Specialty']}")
+            
+            with col2:
+                if provider["Type"] in ["Eye Hospital", "Specialized Hospital"]:
+                    st.badge("Hospital")
+                elif provider["Type"] == "Ophthalmology Clinic":
+                    st.badge("Clinic")
+                else:
+                    st.badge("Optical Center")
+            
+            st.divider()
+    
+    st.divider()
+
 # Create tabs
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Vision Symptoms", "Eye Health", "Results", "AI Assistant", "Find Providers"])
 
@@ -185,13 +229,6 @@ with tab2:
         st.session_state.contact_wearer = st.checkbox(
             "Are you a contact lens wearer?",
             key="contact_wearer"
-        )
-        
-        # Location selection
-        st.session_state.selected_location = st.selectbox(
-            "Select your location (to find nearby providers):",
-            options=["Select a location"] + list(EYE_CARE_PROVIDERS.keys()),
-            key="location_select"
         )
 
 with tab3:
