@@ -55,7 +55,7 @@ EYE_CARE_PROVIDERS = {
 # Constants
 HIGH_PRIORITY_THRESHOLD = 12
 MODERATE_PRIORITY_THRESHOLD = 7
-MAX_RISK_SCORE = 30
+MAX_RISK_SCORE = 34
 
 SYMPTOM_WEIGHTS = {
     "blur_distance": {"Occasionally": 1, "Frequently": 3},
@@ -173,6 +173,28 @@ with tab2:
     st.header("Eye Health Factors")
     st.write("Tell us about your eye health history and habits:")
 
+    st.subheader("👤 Personal Information")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.number_input(
+            "Age:",
+            min_value=5,
+            max_value=110,
+            value=30,
+            step=1,
+            key="age"
+        )
+    with col_b:
+        st.radio(
+            "Gender:",
+            options=["Male", "Female"],
+            horizontal=True,
+            key="gender"
+        )
+
+    st.divider()
+    st.subheader("🏥 Health History & Habits")
+
     col1, col2 = st.columns(2)
 
     with col1:
@@ -253,6 +275,24 @@ with tab3:
         if st.session_state.get("dry_eyes", False):
             risk_score += 1
             risk_factors.append("Dry eyes")
+
+        # Age-based risk scoring
+        age = st.session_state.get("age", 30)
+        if age >= 60:
+            risk_score += 3
+            risk_factors.append(f"Age {age} — higher risk for cataracts, glaucoma, and macular degeneration")
+        elif age >= 40:
+            risk_score += 2
+            risk_factors.append(f"Age {age} — increased risk for presbyopia and glaucoma")
+        elif age < 18:
+            risk_score += 1
+            risk_factors.append(f"Age {age} — elevated risk for myopia development")
+
+        # Gender-based risk note
+        gender = st.session_state.get("gender", "Male")
+        if gender == "Female":
+            risk_score += 1
+            risk_factors.append("Female — higher prevalence of dry eye syndrome and autoimmune-related eye conditions")
 
         # Determine recommendation
         if risk_score >= HIGH_PRIORITY_THRESHOLD:
