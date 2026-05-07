@@ -1,5 +1,2 @@
 streamlit
-openai
 pandas
-streamlit
-fpdf2

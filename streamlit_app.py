@@ -2,8 +2,6 @@ import streamlit as st
 import os
 import pandas as pd
 from datetime import datetime
-from fpdf import FPDF
-import io
 
 # Configure page
 st.set_page_config(page_title="Vision Health Checker", page_icon="👁️", layout="wide")
@@ -77,81 +75,6 @@ SYMPTOM_LABELS = {
     "night_vision": "Difficulty seeing at night",
 }
 
-
-def generate_pdf(risk_score, recommendation, advice, priority_level, risk_factors, symptoms_details, recommendations_text, timestamp):
-    pdf = FPDF()
-    pdf.add_page()
-
-    # Header
-    pdf.set_font("Helvetica", "B", 20)
-    pdf.set_fill_color(30, 80, 160)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 14, "Vision Health Checker", fill=True, ln=True, align="C")
-    pdf.set_text_color(0, 0, 0)
-    pdf.ln(4)
-
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 6, f"Assessment Report  |  {timestamp}", ln=True, align="C")
-    pdf.set_text_color(0, 0, 0)
-    pdf.ln(6)
-
-    # Risk score box
-    pdf.set_font("Helvetica", "B", 13)
-    pdf.cell(0, 8, "Assessment Summary", ln=True)
-    pdf.set_draw_color(200, 200, 200)
-    pdf.set_line_width(0.4)
-
-    if priority_level == "high":
-        pdf.set_fill_color(255, 220, 220)
-    elif priority_level == "moderate":
-        pdf.set_fill_color(255, 245, 200)
-    else:
-        pdf.set_fill_color(220, 245, 220)
-
-    pdf.rect(10, pdf.get_y(), 190, 22, style="FD")
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(95, 11, f"Risk Score: {risk_score} / {MAX_RISK_SCORE}", ln=False, align="C")
-    priority_label = recommendation.replace("🔴 ", "").replace("🟡 ", "").replace("🟢 ", "")
-    pdf.cell(95, 11, f"Priority: {priority_label}", ln=True, align="C")
-    pdf.set_font("Helvetica", "", 11)
-    pdf.cell(0, 11, advice, ln=True, align="C")
-    pdf.ln(6)
-
-    # Key factors
-    if risk_factors:
-        pdf.set_font("Helvetica", "B", 13)
-        pdf.cell(0, 8, "Key Factors Identified", ln=True)
-        pdf.set_font("Helvetica", "", 11)
-        for i, factor in enumerate(risk_factors, 1):
-            pdf.cell(0, 7, f"  {i}. {factor}", ln=True)
-        pdf.ln(4)
-
-    # Symptom responses
-    pdf.set_font("Helvetica", "B", 13)
-    pdf.cell(0, 8, "Symptom Responses", ln=True)
-    pdf.set_font("Helvetica", "", 11)
-    for item in symptoms_details:
-        label = SYMPTOM_LABELS.get(item["symptom"], item["symptom"].replace("_", " ").title())
-        pdf.cell(0, 7, f"  - {label}: {item['severity']}", ln=True)
-    pdf.ln(4)
-
-    # Recommendations
-    pdf.set_font("Helvetica", "B", 13)
-    pdf.cell(0, 8, "Recommendations", ln=True)
-    pdf.set_font("Helvetica", "", 11)
-    for line in recommendations_text:
-        clean = line.strip().lstrip("- ").replace("**", "")
-        if clean:
-            pdf.multi_cell(0, 7, f"  - {clean}")
-    pdf.ln(4)
-
-    # Disclaimer
-    pdf.set_font("Helvetica", "I", 9)
-    pdf.set_text_color(120, 120, 120)
-    pdf.multi_cell(0, 6, "Disclaimer: This report is for informational purposes only and is not a substitute for professional medical advice. Always consult with a qualified eye care professional.")
-
-    return bytes(pdf.output())
 
 
 st.title("👁️ Vision Health Checker")
@@ -399,23 +322,6 @@ with tab3:
         st.subheader("📋 Recommendations:")
         for item in r["recommendations_text"]:
             st.write(f"- {item}")
-
-        st.divider()
-
-        # PDF Export
-        st.subheader("📄 Export Report")
-        pdf_bytes = generate_pdf(
-            r["risk_score"], r["recommendation"], r["advice"],
-            r["priority_level"], r["risk_factors"], r["symptoms_details"],
-            r["recommendations_text"], r["timestamp"]
-        )
-        st.download_button(
-            label="⬇️ Download PDF Report",
-            data=pdf_bytes,
-            file_name=f"vision_health_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-            mime="application/pdf",
-            type="primary"
-        )
 
         st.divider()
         st.caption(f"Assessment completed on {r['timestamp']}")
