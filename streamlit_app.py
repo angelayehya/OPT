@@ -94,21 +94,21 @@ st.write("Choose your location to get insights about the nearest eye care clinic
 col1, col2 = st.columns([2, 2])
 
 with col1:
-    st.session_state.selected_location = st.selectbox(
+    st.selectbox(
         "Select your location:",
         options=["Select a location"] + list(EYE_CARE_PROVIDERS.keys()),
         key="location_select_main"
     )
 
 # Show nearby clinics based on location selection
-if st.session_state.selected_location and st.session_state.selected_location != "Select a location":
+if st.session_state.get("location_select_main") and st.session_state.get("location_select_main") != "Select a location":
     with col2:
-        providers = EYE_CARE_PROVIDERS[st.session_state.selected_location]
-        st.metric(f"Available Clinics in {st.session_state.selected_location}", len(providers))
+        providers = EYE_CARE_PROVIDERS[st.session_state.get("location_select_main")]
+        st.metric(f"Available Clinics in {st.session_state.get('location_select_main')}", len(providers))
     
     st.divider()
     
-    st.subheader(f"🏥 Nearby Clinics in {st.session_state.selected_location}")
+    st.subheader(f"🏥 Nearby Clinics in {st.session_state.get('location_select_main')}")
     
     # Display quick preview of providers
     for idx, provider in enumerate(providers, 1):
@@ -141,38 +141,38 @@ with tab1:
     col1, col2 = st.columns(2)
     
     with col1:
-        st.session_state.blur_distance = st.radio(
+        st.radio(
             "Do you have trouble seeing things at a distance?",
             options=["No", "Occasionally", "Frequently"],
             key="blur_distance"
         )
         
-        st.session_state.blur_close = st.radio(
+        st.radio(
             "Do you have trouble seeing things up close?",
             options=["No", "Occasionally", "Frequently"],
             key="blur_close"
         )
         
-        st.session_state.eye_strain = st.radio(
+        st.radio(
             "Do you experience eye strain or fatigue during/after screen time?",
             options=["No", "Occasionally", "Frequently"],
             key="eye_strain"
         )
     
     with col2:
-        st.session_state.headaches = st.radio(
+        st.radio(
             "Do you suffer from frequent headaches?",
             options=["No", "Occasionally", "Frequently"],
             key="headaches"
         )
         
-        st.session_state.squinting = st.radio(
+        st.radio(
             "Do you find yourself squinting to see clearly?",
             options=["No", "Occasionally", "Frequently"],
             key="squinting"
         )
         
-        st.session_state.night_vision = st.radio(
+        st.radio(
             "Do you have difficulty seeing at night or in low light?",
             options=["No", "Occasionally", "Frequently"],
             key="night_vision"
@@ -185,7 +185,7 @@ with tab2:
     col1, col2 = st.columns(2)
     
     with col1:
-        st.session_state.last_exam = st.selectbox(
+        st.selectbox(
             "When was your last eye exam?",
             options=[
                 "Never had one",
@@ -197,12 +197,12 @@ with tab2:
             key="last_exam"
         )
         
-        st.session_state.family_history = st.checkbox(
+        st.checkbox(
             "Do you have family history of vision problems (myopia, hyperopia, astigmatism)?",
             key="family_history"
         )
         
-        st.session_state.screen_time = st.slider(
+        st.slider(
             "Average daily screen time (hours):",
             min_value=0,
             max_value=16,
@@ -211,22 +211,22 @@ with tab2:
         )
     
     with col2:
-        st.session_state.floaters = st.checkbox(
+        st.checkbox(
             "Do you see floaters or spots in your vision?",
             key="floaters"
         )
         
-        st.session_state.flashes = st.checkbox(
+        st.checkbox(
             "Do you see flashes of light?",
             key="flashes"
         )
         
-        st.session_state.dry_eyes = st.checkbox(
+        st.checkbox(
             "Do you experience dry or irritated eyes?",
             key="dry_eyes"
         )
         
-        st.session_state.contact_wearer = st.checkbox(
+        st.checkbox(
             "Are you a contact lens wearer?",
             key="contact_wearer"
         )
