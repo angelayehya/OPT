@@ -10,7 +10,11 @@ st.set_page_config(page_title="Vision Health Checker", page_icon="👁️", layo
 # Initialize OpenAI client
 @st.cache_resource
 def get_openai_client():
-    api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+    try:
+        api_key = st.secrets.get("OPENAI_API_KEY")
+    except Exception:
+        api_key = None
+    api_key = api_key or os.getenv("OPENAI_API_KEY")
     if not api_key:
         st.error("⚠️ OpenAI API key not found. Please add it to your secrets.")
         st.stop()
